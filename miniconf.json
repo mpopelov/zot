@@ -1,0 +1,63 @@
+{
+  "distSpecVersion": "1.1.1",
+  "extensions": {
+    "search": {},
+    "ui": {}
+  },
+  "storage": {
+    "rootDirectory": "./registry",
+    "commit": true,
+    "dedupe": true,
+    "gc": true,
+    "gcDelay": "1h",
+    "gcInterval": "4h"
+  },
+  "http": {
+    "address": "0.0.0.0",
+    "port": "5443",
+    "externalUrl": "https://localhost:5443",
+    "realm": "----",
+    "tls": {
+      "cert": "./tls.crt",
+      "key": "./tls.key"
+    },
+    "auth": {
+      "htpasswd": {
+        "path": "./htpasswd"
+      },
+      "openid": {
+        "callbackAllowOrigins": ["https://-----------"],
+        "providers": {
+          "oidc": {
+            "name": "---------",
+            "clientid": "----------------",
+            "clientsecret": "--------------",
+            "keypath": "",
+            "issuer": "https://login.microsoftonline.com/------------------/v2.0",
+            "scopes": ["api://------------------/----------"],
+            "claimMapping": {
+              "username": "name",
+              "groups": "groups"
+            }
+          }
+        }
+      },
+      "failDelay": 5
+    },
+    "accessControl": {
+      "repositories": {
+        "**": {
+          "anonymousPolicy": ["read"],
+          "defaultPolicy": ["create", "read", "update"]
+        }
+      },
+      "adminPolicy": {
+        "groups": ["f344ef5b-4b11-42da-81c9-ce9c1294bd3b"],
+        "actions": ["read", "create", "update", "delete"]
+      }
+    }
+  },
+  "log": {
+    "level": "trace"
+  }
+}

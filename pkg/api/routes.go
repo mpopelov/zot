@@ -97,7 +97,8 @@ func (rh *RouteHandler) SetupRoutes() {
 					rp.CodeExchangeHandler(rh.GithubCodeExchangeCallback(), relyingParty))
 			} else if config.IsOpenIDSupported(provider) {
 				rh.c.Router.HandleFunc(constants.CallbackBasePath+"/"+provider,
-					rp.CodeExchangeHandler(rp.UserinfoCallback(rh.OpenIDCodeExchangeCallbackWithProvider(provider)), relyingParty))
+					// rp.CodeExchangeHandler(rp.UserinfoCallback(rh.OpenIDCodeExchangeCallbackWithProvider(provider)), relyingParty))
+					rp.CodeExchangeHandler(EntraIDUserinfoCallback(rh.OpenIDCodeExchangeCallbackWithProvider(provider)), relyingParty))
 			}
 		}
 	}
@@ -2771,6 +2772,28 @@ func (rh *RouteHandler) GithubCodeExchangeCallback() rp.CodeExchangeCallback[*oi
 		}
 
 		w.WriteHeader(http.StatusCreated)
+	}
+}
+
+func EntraIDUserinfoCallback(f rp.CodeExchangeUserinfoCallback[*oidc.IDTokenClaims, *oidc.UserInfo]) rp.CodeExchangeCallback[*oidc.IDTokenClaims] {
+	return func(w http.ResponseWriter, r *http.Request, tokens *oidc.Tokens[*oidc.IDTokenClaims], state string, rp rp.RelyingParty) {
+		fakeinfo := oidc.UserInfo{}
+		// copy claims
+		if tokens != nil && tokens.IDTokenClaims != nil {
+			if val, ok := tokens.IDTokenClaims.Claims["verified_primary_email"]; ok {
+				switch v := val.(type) {
+				case string:
+					fakeinfo.Name = v
+					fakeinfo.UserInfoEmail.Email = v
+				case []any:
+					if len(v) > 0 {
+						fakeinfo.Name = v[0].(string)
+						fakeinfo.UserInfoEmail.Email = v[0].(string)
+					}
+				}
+			}
+		}
+		f(w, r, tokens, state, rp, &fakeinfo)
 	}
 }
 
